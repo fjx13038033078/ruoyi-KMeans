@@ -1,5 +1,5 @@
 
-# SMS（Student Management System的缩写）
+# K-Means
 
 ## 内置功能
 
