@@ -68,6 +68,7 @@
 <script>
 import * as echarts from 'echarts'
 import {parseTime} from "../utils/ruoyi";
+import {getNotice, listNotice} from "@/api/system/notice";
 
 export default {
   name: "Notice",
@@ -124,8 +125,6 @@ export default {
     this.getList();
   },
   mounted() {
-    this.initFailureRateByCourse();
-    this.initAverageScoreByCourse();
     this.initEchartsText();
   },
   methods: {
@@ -147,26 +146,6 @@ export default {
         this.showNoticeDialog = true;
         this.loading = false;
       });
-    },
-    fetchFailureRateCountMap() {
-      getFailureRateByCourse().then(response => {
-        this.failureRateByCourseData = response.data;
-        this.updateFailureRateChart(); // 获取到数据后更新图表
-      });
-    },
-    fetchAverageScoreByCourse() {
-      getAverageScoreByCourse().then(response => {
-        this.averageScoreByCourseData = response.data;
-        this.updateAverageScoreChart(); // 获取到数据后更新图表
-      });
-    },
-    initFailureRateByCourse() {
-      this.failureRateChart = echarts.init(document.getElementById("failureRateChart"));
-      this.fetchFailureRateCountMap();
-    },
-    initAverageScoreByCourse(){
-      this.averageScoreChart = echarts.init(document.getElementById("averageScoreChart"));
-      this.fetchAverageScoreByCourse();
     },
     // 初始化 ECharts 动画文本
     initEchartsText() {
@@ -221,44 +200,6 @@ export default {
       };
       myChart.setOption(option);
     },
-    updateFailureRateChart() {
-      const courseNames = Object.keys(this.failureRateByCourseData);
-      const failureRate = Object.values(this.failureRateByCourseData);
-      const option = {
-        // echarts 配置项
-        xAxis: {
-          type: "category",
-          data: courseNames
-        },
-        yAxis: {
-          type: "value"
-        },
-        series: [{
-          data: failureRate,
-          type: "bar"
-        }]
-      };
-      this.failureRateChart.setOption(option);
-    },
-    updateAverageScoreChart(){
-      const courseNames = Object.keys(this.averageScoreByCourseData);
-      const averageScore = Object.values(this.averageScoreByCourseData);
-      const option = {
-        // echarts 配置项
-        xAxis: {
-          type: "category",
-          data: courseNames
-        },
-        yAxis: {
-          type: "value"
-        },
-        series: [{
-          data: averageScore,
-          type: "bar"
-        }]
-      };
-      this.averageScoreChart.setOption(option);
-    }
   }
 };
 </script>
