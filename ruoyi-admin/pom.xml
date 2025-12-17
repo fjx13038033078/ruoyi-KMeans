@@ -49,6 +49,13 @@
             <artifactId>ruoyi-framework</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.ruoyi</groupId>
+            <artifactId>ruoyi-water</artifactId>
+            <version>3.8.7</version>
+            <scope>compile</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
