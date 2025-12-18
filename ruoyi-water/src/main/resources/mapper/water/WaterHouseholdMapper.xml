@@ -7,6 +7,7 @@
     <resultMap type="com.ruoyi.water.domain.WaterHousehold" id="WaterHouseholdResult">
         <id property="householdId" column="household_id"/>
         <result property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
         <result property="address" column="address"/>
         <result property="community" column="community"/>
         <result property="familySize" column="family_size"/>
