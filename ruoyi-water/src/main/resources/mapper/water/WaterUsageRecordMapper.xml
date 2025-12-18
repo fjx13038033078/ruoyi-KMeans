@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.water.mapper.WaterUsageRecordMapper">
+
+    <resultMap type="com.ruoyi.water.domain.WaterUsageRecord" id="WaterUsageRecordResult">
+        <id property="recordId" column="record_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="usageDate" column="usage_date"/>
+        <result property="usageAmount" column="usage_amount"/>
+        <result property="usageType" column="usage_type"/>
+        <result property="timePeriod" column="time_period"/>
+        <result property="isWeekend" column="is_weekend"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+        <result property="userName" column="user_name"/>
+    </resultMap>
+
+    <sql id="selectWaterUsageRecordVo">
+        SELECT r.record_id, r.user_id, r.usage_date, r.usage_amount, r.usage_type,
+               r.time_period, r.is_weekend, r.del_flag, r.create_by, r.create_time,
+               r.update_by, r.update_time, r.remark, u.nick_name as user_name
+        FROM water_usage_record r
+        LEFT JOIN sys_user u ON r.user_id = u.user_id
+    </sql>
+
+    <!-- 查询用水记录列表 -->
+    <select id="selectWaterUsageRecordList" parameterType="com.ruoyi.water.domain.WaterUsageRecord" resultMap="WaterUsageRecordResult">
+        <include refid="selectWaterUsageRecordVo"/>
+        <where>
+            r.del_flag = 0
+            <if test="userId != null">
+                AND r.user_id = #{userId}
+            </if>
+            <if test="usageDate != null">
+                AND r.usage_date = #{usageDate}
+            </if>
+            <if test="usageType != null">
+                AND r.usage_type = #{usageType}
+            </if>
+            <if test="timePeriod != null">
+                AND r.time_period = #{timePeriod}
+            </if>
+            <if test="isWeekend != null">
+                AND r.is_weekend = #{isWeekend}
+            </if>
+            <if test="params != null and params.beginDate != null and params.beginDate != ''">
+                AND r.usage_date &gt;= #{params.beginDate}
+            </if>
+            <if test="params != null and params.endDate != null and params.endDate != ''">
+                AND r.usage_date &lt;= #{params.endDate}
+            </if>
+        </where>
+        ORDER BY r.usage_date DESC, r.record_id DESC
+    </select>
+
+    <!-- 根据记录ID查询用水记录 -->
+    <select id="selectWaterUsageRecordById" parameterType="Long" resultMap="WaterUsageRecordResult">
+        <include refid="selectWaterUsageRecordVo"/>
+        WHERE r.record_id = #{recordId} AND r.del_flag = 0
+    </select>
+
+    <!-- 根据用户ID查询用水记录列表 -->
+    <select id="selectWaterUsageRecordByUserId" parameterType="Long" resultMap="WaterUsageRecordResult">
+        <include refid="selectWaterUsageRecordVo"/>
+        WHERE r.user_id = #{userId} AND r.del_flag = 0
+        ORDER BY r.usage_date DESC, r.record_id DESC
+    </select>
+
+    <!-- 新增用水记录 -->
+    <insert id="insertWaterUsageRecord" parameterType="com.ruoyi.water.domain.WaterUsageRecord" useGeneratedKeys="true" keyProperty="recordId">
+        INSERT INTO water_usage_record (
+            user_id, usage_date, usage_amount, usage_type, time_period,
+            is_weekend, del_flag, create_by, create_time, remark
+        ) VALUES (
+            #{userId}, #{usageDate}, #{usageAmount}, #{usageType}, #{timePeriod},
+            #{isWeekend}, 0, #{createBy}, NOW(), #{remark}
+        )
+    </insert>
+
+    <!-- 修改用水记录 -->
+    <update id="updateWaterUsageRecord" parameterType="com.ruoyi.water.domain.WaterUsageRecord">
+        UPDATE water_usage_record
+        <set>
+            <if test="usageDate != null">usage_date = #{usageDate},</if>
+            <if test="usageAmount != null">usage_amount = #{usageAmount},</if>
+            <if test="usageType != null">usage_type = #{usageType},</if>
+            <if test="timePeriod != null">time_period = #{timePeriod},</if>
+            <if test="isWeekend != null">is_weekend = #{isWeekend},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = NOW()
+        </set>
+        WHERE record_id = #{recordId}
+    </update>
+
+    <!-- 删除用水记录（逻辑删除） -->
+    <update id="deleteWaterUsageRecordById" parameterType="Long">
+        UPDATE water_usage_record SET del_flag = 2, update_time = NOW()
+        WHERE record_id = #{recordId}
+    </update>
+
+    <!-- 批量删除用水记录（逻辑删除） -->
+    <update id="deleteWaterUsageRecordByIds" parameterType="Long">
+        UPDATE water_usage_record SET del_flag = 2, update_time = NOW()
+        WHERE record_id IN
+        <foreach collection="array" item="recordId" open="(" separator="," close=")">
+            #{recordId}
+        </foreach>
+    </update>
+
+    <!-- 根据用户ID和统计周期查询用水统计数据 -->
+    <select id="selectUsageStatisticsByUserAndPeriod" resultType="map">
+        SELECT
+            r.user_id,
+            SUM(r.usage_amount) as total_usage,
+            AVG(daily_sum.daily_amount) as avg_daily_usage,
+            COUNT(*) as usage_count,
+            SUM(CASE WHEN r.time_period = 1 THEN r.usage_amount ELSE 0 END) / SUM(r.usage_amount) * 100 as dawn_ratio,
+            SUM(CASE WHEN r.time_period = 2 THEN r.usage_amount ELSE 0 END) / SUM(r.usage_amount) * 100 as morning_ratio,
+            SUM(CASE WHEN r.time_period = 3 THEN r.usage_amount ELSE 0 END) / SUM(r.usage_amount) * 100 as afternoon_ratio,
+            SUM(CASE WHEN r.time_period = 4 THEN r.usage_amount ELSE 0 END) / SUM(r.usage_amount) * 100 as evening_ratio,
+            SUM(CASE WHEN r.is_weekend = 1 THEN r.usage_amount ELSE 0 END) / SUM(r.usage_amount) * 100 as weekend_ratio
+        FROM water_usage_record r
+        LEFT JOIN (
+            SELECT user_id, usage_date, SUM(usage_amount) as daily_amount
+            FROM water_usage_record
+            WHERE del_flag = 0 AND DATE_FORMAT(usage_date, '%Y-%m') = #{statPeriod}
+            GROUP BY user_id, usage_date
+        ) daily_sum ON r.user_id = daily_sum.user_id AND r.usage_date = daily_sum.usage_date
+        WHERE r.del_flag = 0
+          AND r.user_id = #{userId}
+          AND DATE_FORMAT(r.usage_date, '%Y-%m') = #{statPeriod}
+        GROUP BY r.user_id
+    </select>
+
+    <!-- 根据统计周期查询所有用户的用水统计数据 -->
+    <select id="selectAllUsageStatisticsByPeriod" resultType="map">
+        SELECT
+            r.user_id,
+            SUM(r.usage_amount) as total_usage,
+            COUNT(*) as usage_count,
+            SUM(CASE WHEN r.time_period = 1 THEN r.usage_amount ELSE 0 END) / NULLIF(SUM(r.usage_amount), 0) * 100 as dawn_ratio,
+            SUM(CASE WHEN r.time_period = 2 THEN r.usage_amount ELSE 0 END) / NULLIF(SUM(r.usage_amount), 0) * 100 as morning_ratio,
+            SUM(CASE WHEN r.time_period = 3 THEN r.usage_amount ELSE 0 END) / NULLIF(SUM(r.usage_amount), 0) * 100 as afternoon_ratio,
+            SUM(CASE WHEN r.time_period = 4 THEN r.usage_amount ELSE 0 END) / NULLIF(SUM(r.usage_amount), 0) * 100 as evening_ratio,
+            SUM(CASE WHEN r.is_weekend = 1 THEN r.usage_amount ELSE 0 END) / NULLIF(SUM(r.usage_amount), 0) * 100 as weekend_ratio
+        FROM water_usage_record r
+        WHERE r.del_flag = 0
+          AND DATE_FORMAT(r.usage_date, '%Y-%m') = #{statPeriod}
+        GROUP BY r.user_id
+    </select>
+
+    <!-- 查询用水类型分布统计 -->
+    <select id="selectUsageTypeStatistics" resultType="map">
+        SELECT
+            usage_type as type,
+            COUNT(*) as count,
+            SUM(usage_amount) as total_amount
+        FROM water_usage_record
+        WHERE del_flag = 0
+        <if test="userId != null">
+            AND user_id = #{userId}
+        </if>
+        GROUP BY usage_type
+        ORDER BY total_amount DESC
+    </select>
+
+    <!-- 查询时段分布统计 -->
+    <select id="selectTimePeriodStatistics" resultType="map">
+        SELECT
+            time_period as period,
+            COUNT(*) as count,
+            SUM(usage_amount) as total_amount
+        FROM water_usage_record
+        WHERE del_flag = 0
+        <if test="userId != null">
+            AND user_id = #{userId}
+        </if>
+        GROUP BY time_period
+        ORDER BY time_period ASC
+    </select>
+
+</mapper>
+

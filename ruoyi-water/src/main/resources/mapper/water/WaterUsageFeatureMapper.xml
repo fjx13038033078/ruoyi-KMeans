@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.water.mapper.WaterUsageFeatureMapper">
+
+    <resultMap type="com.ruoyi.water.domain.WaterUsageFeature" id="WaterUsageFeatureResult">
+        <id property="featureId" column="feature_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="statPeriod" column="stat_period"/>
+        <result property="totalUsage" column="total_usage"/>
+        <result property="avgDailyUsage" column="avg_daily_usage"/>
+        <result property="usageCount" column="usage_count"/>
+        <result property="dawnRatio" column="dawn_ratio"/>
+        <result property="morningRatio" column="morning_ratio"/>
+        <result property="afternoonRatio" column="afternoon_ratio"/>
+        <result property="eveningRatio" column="evening_ratio"/>
+        <result property="weekendRatio" column="weekend_ratio"/>
+        <result property="clusterId" column="cluster_id"/>
+        <result property="clusterLabel" column="cluster_label"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="userName" column="user_name"/>
+    </resultMap>
+
+    <sql id="selectWaterUsageFeatureVo">
+        SELECT f.feature_id, f.user_id, f.stat_period, f.total_usage, f.avg_daily_usage,
+               f.usage_count, f.dawn_ratio, f.morning_ratio, f.afternoon_ratio,
+               f.evening_ratio, f.weekend_ratio, f.cluster_id, f.cluster_label,
+               f.create_time, f.update_time, u.nick_name as user_name
+        FROM water_usage_feature f
+        LEFT JOIN sys_user u ON f.user_id = u.user_id
+    </sql>
+
+    <!-- 查询用水特征列表 -->
+    <select id="selectWaterUsageFeatureList" parameterType="com.ruoyi.water.domain.WaterUsageFeature" resultMap="WaterUsageFeatureResult">
+        <include refid="selectWaterUsageFeatureVo"/>
+        <where>
+            <if test="userId != null">
+                AND f.user_id = #{userId}
+            </if>
+            <if test="statPeriod != null and statPeriod != ''">
+                AND f.stat_period = #{statPeriod}
+            </if>
+            <if test="clusterId != null">
+                AND f.cluster_id = #{clusterId}
+            </if>
+            <if test="clusterLabel != null and clusterLabel != ''">
+                AND f.cluster_label = #{clusterLabel}
+            </if>
+        </where>
+        ORDER BY f.stat_period DESC, f.user_id ASC
+    </select>
+
+    <!-- 根据特征ID查询用水特征 -->
+    <select id="selectWaterUsageFeatureById" parameterType="Long" resultMap="WaterUsageFeatureResult">
+        <include refid="selectWaterUsageFeatureVo"/>
+        WHERE f.feature_id = #{featureId}
+    </select>
+
+    <!-- 根据用户ID和统计周期查询用水特征 -->
+    <select id="selectWaterUsageFeatureByUserAndPeriod" resultMap="WaterUsageFeatureResult">
+        <include refid="selectWaterUsageFeatureVo"/>
+        WHERE f.user_id = #{userId} AND f.stat_period = #{statPeriod}
+    </select>
+
+    <!-- 根据统计周期查询所有用水特征 -->
+    <select id="selectWaterUsageFeatureByPeriod" resultMap="WaterUsageFeatureResult">
+        <include refid="selectWaterUsageFeatureVo"/>
+        WHERE f.stat_period = #{statPeriod}
+        ORDER BY f.user_id ASC
+    </select>
+
+    <!-- 新增用水特征 -->
+    <insert id="insertWaterUsageFeature" parameterType="com.ruoyi.water.domain.WaterUsageFeature" useGeneratedKeys="true" keyProperty="featureId">
+        INSERT INTO water_usage_feature (
+            user_id, stat_period, total_usage, avg_daily_usage, usage_count,
+            dawn_ratio, morning_ratio, afternoon_ratio, evening_ratio,
+            weekend_ratio, cluster_id, cluster_label, create_time
+        ) VALUES (
+            #{userId}, #{statPeriod}, #{totalUsage}, #{avgDailyUsage}, #{usageCount},
+            #{dawnRatio}, #{morningRatio}, #{afternoonRatio}, #{eveningRatio},
+            #{weekendRatio}, #{clusterId}, #{clusterLabel}, NOW()
+        )
+    </insert>
+
+    <!-- 修改用水特征 -->
+    <update id="updateWaterUsageFeature" parameterType="com.ruoyi.water.domain.WaterUsageFeature">
+        UPDATE water_usage_feature
+        <set>
+            <if test="totalUsage != null">total_usage = #{totalUsage},</if>
+            <if test="avgDailyUsage != null">avg_daily_usage = #{avgDailyUsage},</if>
+            <if test="usageCount != null">usage_count = #{usageCount},</if>
+            <if test="dawnRatio != null">dawn_ratio = #{dawnRatio},</if>
+            <if test="morningRatio != null">morning_ratio = #{morningRatio},</if>
+            <if test="afternoonRatio != null">afternoon_ratio = #{afternoonRatio},</if>
+            <if test="eveningRatio != null">evening_ratio = #{eveningRatio},</if>
+            <if test="weekendRatio != null">weekend_ratio = #{weekendRatio},</if>
+            <if test="clusterId != null">cluster_id = #{clusterId},</if>
+            <if test="clusterLabel != null">cluster_label = #{clusterLabel},</if>
+            update_time = NOW()
+        </set>
+        WHERE feature_id = #{featureId}
+    </update>
+
+    <!-- 删除用水特征 -->
+    <delete id="deleteWaterUsageFeatureById" parameterType="Long">
+        DELETE FROM water_usage_feature WHERE feature_id = #{featureId}
+    </delete>
+
+    <!-- 批量删除用水特征 -->
+    <delete id="deleteWaterUsageFeatureByIds" parameterType="Long">
+        DELETE FROM water_usage_feature WHERE feature_id IN
+        <foreach collection="array" item="featureId" open="(" separator="," close=")">
+            #{featureId}
+        </foreach>
+    </delete>
+
+    <!-- 批量更新聚类结果 -->
+    <update id="batchUpdateClusterResult">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE water_usage_feature
+            SET cluster_id = #{item.clusterId},
+                cluster_label = #{item.clusterLabel},
+                update_time = NOW()
+            WHERE feature_id = #{item.featureId}
+        </foreach>
+    </update>
+
+    <!-- 根据聚类ID查询用水特征列表 -->
+    <select id="selectWaterUsageFeatureByClusterId" resultMap="WaterUsageFeatureResult">
+        <include refid="selectWaterUsageFeatureVo"/>
+        WHERE f.cluster_id = #{clusterId}
+        <if test="statPeriod != null and statPeriod != ''">
+            AND f.stat_period = #{statPeriod}
+        </if>
+        ORDER BY f.avg_daily_usage DESC
+    </select>
+
+    <!-- 查询聚类统计信息 -->
+    <select id="selectClusterStatistics" resultMap="WaterUsageFeatureResult">
+        SELECT
+            cluster_id,
+            cluster_label,
+            COUNT(*) as usage_count,
+            AVG(avg_daily_usage) as avg_daily_usage,
+            AVG(total_usage) as total_usage,
+            AVG(dawn_ratio) as dawn_ratio,
+            AVG(morning_ratio) as morning_ratio,
+            AVG(afternoon_ratio) as afternoon_ratio,
+            AVG(evening_ratio) as evening_ratio,
+            AVG(weekend_ratio) as weekend_ratio
+        FROM water_usage_feature
+        WHERE stat_period = #{statPeriod} AND cluster_id IS NOT NULL
+        GROUP BY cluster_id, cluster_label
+        ORDER BY cluster_id ASC
+    </select>
+
+</mapper>
+

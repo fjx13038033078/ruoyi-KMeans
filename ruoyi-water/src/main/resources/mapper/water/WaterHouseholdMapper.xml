@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.water.mapper.WaterHouseholdMapper">
+
+    <resultMap type="com.ruoyi.water.domain.WaterHousehold" id="WaterHouseholdResult">
+        <id property="householdId" column="household_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="address" column="address"/>
+        <result property="community" column="community"/>
+        <result property="familySize" column="family_size"/>
+        <result property="meterNo" column="meter_no"/>
+        <result property="status" column="status"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectWaterHouseholdVo">
+        SELECT h.household_id, h.user_id, h.address, h.community, h.family_size,
+               h.meter_no, h.status, h.create_by, h.create_time, h.update_by,
+               h.update_time, h.remark, u.nick_name as user_name
+        FROM water_household h
+        LEFT JOIN sys_user u ON h.user_id = u.user_id
+    </sql>
+
+    <!-- 查询住户信息列表 -->
+    <select id="selectWaterHouseholdList" parameterType="com.ruoyi.water.domain.WaterHousehold" resultMap="WaterHouseholdResult">
+        <include refid="selectWaterHouseholdVo"/>
+        <where>
+            <if test="userId != null">
+                AND h.user_id = #{userId}
+            </if>
+            <if test="address != null and address != ''">
+                AND h.address LIKE CONCAT('%', #{address}, '%')
+            </if>
+            <if test="community != null and community != ''">
+                AND h.community LIKE CONCAT('%', #{community}, '%')
+            </if>
+            <if test="meterNo != null and meterNo != ''">
+                AND h.meter_no = #{meterNo}
+            </if>
+            <if test="status != null">
+                AND h.status = #{status}
+            </if>
+        </where>
+        ORDER BY h.household_id DESC
+    </select>
+
+    <!-- 根据住户ID查询住户信息 -->
+    <select id="selectWaterHouseholdById" parameterType="Long" resultMap="WaterHouseholdResult">
+        <include refid="selectWaterHouseholdVo"/>
+        WHERE h.household_id = #{householdId}
+    </select>
+
+    <!-- 根据用户ID查询住户信息 -->
+    <select id="selectWaterHouseholdByUserId" parameterType="Long" resultMap="WaterHouseholdResult">
+        <include refid="selectWaterHouseholdVo"/>
+        WHERE h.user_id = #{userId}
+    </select>
+
+    <!-- 新增住户信息 -->
+    <insert id="insertWaterHousehold" parameterType="com.ruoyi.water.domain.WaterHousehold" useGeneratedKeys="true" keyProperty="householdId">
+        INSERT INTO water_household (
+            user_id, address, community, family_size, meter_no,
+            status, create_by, create_time, remark
+        ) VALUES (
+            #{userId}, #{address}, #{community}, #{familySize}, #{meterNo},
+            #{status}, #{createBy}, NOW(), #{remark}
+        )
+    </insert>
+
+    <!-- 修改住户信息 -->
+    <update id="updateWaterHousehold" parameterType="com.ruoyi.water.domain.WaterHousehold">
+        UPDATE water_household
+        <set>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="community != null">community = #{community},</if>
+            <if test="familySize != null">family_size = #{familySize},</if>
+            <if test="meterNo != null">meter_no = #{meterNo},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = NOW()
+        </set>
+        WHERE household_id = #{householdId}
+    </update>
+
+    <!-- 删除住户信息 -->
+    <delete id="deleteWaterHouseholdById" parameterType="Long">
+        DELETE FROM water_household WHERE household_id = #{householdId}
+    </delete>
+
+    <!-- 批量删除住户信息 -->
+    <delete id="deleteWaterHouseholdByIds" parameterType="Long">
+        DELETE FROM water_household WHERE household_id IN
+        <foreach collection="array" item="householdId" open="(" separator="," close=")">
+            #{householdId}
+        </foreach>
+    </delete>
+
+    <!-- 更新住户状态 -->
+    <update id="updateStatus">
+        UPDATE water_household SET status = #{status}, update_time = NOW()
+        WHERE household_id = #{householdId}
+    </update>
+
+</mapper>
+
