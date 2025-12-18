@@ -66,7 +66,6 @@
             size="medium"
             :disabled="multiple"
             @click="handleDeleteBatch"
-            v-hasPermi="['water:record:delete']"
           >
             批量删除
           </el-button>
@@ -142,7 +141,6 @@
               icon="el-icon-edit"
               size="mini"
               @click="handleEdit(scope.row)"
-              v-hasPermi="['water:record:edit']"
             >
               编辑
             </el-button>
@@ -151,7 +149,6 @@
               icon="el-icon-delete"
               size="mini"
               @click="handleDelete(scope.row)"
-              v-hasPermi="['water:record:delete']"
               style="color: #f56c6c;"
             >
               删除

@@ -55,7 +55,6 @@
             icon="el-icon-plus"
             size="medium"
             @click="handleAdd"
-            v-hasPermi="['water:household:add']"
           >
             新增住户
           </el-button>
@@ -66,7 +65,6 @@
             size="medium"
             :disabled="multiple"
             @click="handleDeleteBatch"
-            v-hasPermi="['water:household:delete']"
           >
             批量删除
           </el-button>
@@ -124,7 +122,6 @@
               icon="el-icon-edit"
               size="mini"
               @click="handleEdit(scope.row)"
-              v-hasPermi="['water:household:edit']"
             >
               编辑
             </el-button>
@@ -133,7 +130,6 @@
               icon="el-icon-delete"
               size="mini"
               @click="handleDelete(scope.row)"
-              v-hasPermi="['water:household:delete']"
               style="color: #f56c6c;"
             >
               删除
