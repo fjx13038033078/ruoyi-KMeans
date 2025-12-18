@@ -4,14 +4,11 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.ruoyi.common.core.domain.BaseEntity;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
  * 住户信息实体类
@@ -24,7 +21,7 @@ import java.time.LocalDateTime;
 @ToString
 @RequiredArgsConstructor
 @TableName("water_household")
-public class WaterHousehold implements Serializable {
+public class WaterHousehold extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
@@ -69,32 +66,4 @@ public class WaterHousehold implements Serializable {
      * 状态：0-正常,1-停用
      */
     private Integer status;
-
-    /**
-     * 创建者
-     */
-    private String createBy;
-
-    /**
-     * 创建时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
-    private LocalDateTime createTime;
-
-    /**
-     * 更新者
-     */
-    private String updateBy;
-
-    /**
-     * 更新时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
-    private LocalDateTime updateTime;
-
-    /**
-     * 备注
-     */
-    private String remark;
 }
-

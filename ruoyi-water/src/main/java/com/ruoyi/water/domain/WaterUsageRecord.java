@@ -5,15 +5,14 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.ruoyi.common.core.domain.BaseEntity;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * 用水记录实体类
@@ -26,7 +25,7 @@ import java.time.LocalDateTime;
 @ToString
 @RequiredArgsConstructor
 @TableName("water_usage_record")
-public class WaterUsageRecord implements Serializable {
+public class WaterUsageRecord extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
@@ -77,32 +76,4 @@ public class WaterUsageRecord implements Serializable {
      * 删除标志：0-存在,2-删除
      */
     private Integer delFlag;
-
-    /**
-     * 创建者
-     */
-    private String createBy;
-
-    /**
-     * 创建时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
-    private LocalDateTime createTime;
-
-    /**
-     * 更新者
-     */
-    private String updateBy;
-
-    /**
-     * 更新时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
-    private LocalDateTime updateTime;
-
-    /**
-     * 备注
-     */
-    private String remark;
 }
-
