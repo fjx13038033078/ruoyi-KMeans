@@ -52,13 +52,15 @@ public class WaterUsageRecordController extends BaseController {
     /**
      * 获取当前用户的用水记录列表
      *
+     * @param waterUsageRecord 查询条件
      * @return 用水记录列表（分页）
      */
     @GetMapping("/myRecords")
-    public TableDataInfo getMyRecords() {
+    public TableDataInfo getMyRecords(WaterUsageRecord waterUsageRecord) {
         startPage();
-        Long userId = SecurityUtils.getUserId();
-        List<WaterUsageRecord> list = waterUsageRecordService.selectWaterUsageRecordByUserId(userId);
+        // 强制设置为当前登录用户的ID，确保只能查询自己的记录
+        waterUsageRecord.setUserId(SecurityUtils.getUserId());
+        List<WaterUsageRecord> list = waterUsageRecordService.selectWaterUsageRecordList(waterUsageRecord);
         return getDataTable(list);
     }
 
