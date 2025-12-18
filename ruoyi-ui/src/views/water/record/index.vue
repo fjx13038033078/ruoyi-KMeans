@@ -60,16 +60,6 @@
       <el-row :gutter="20" class="mb-20" style="margin-bottom: 10px;">
         <el-col>
           <el-button
-            type="primary"
-            plain
-            icon="el-icon-plus"
-            size="medium"
-            @click="handleAdd"
-            v-hasPermi="['water:record:add']"
-          >
-            新增记录
-          </el-button>
-          <el-button
             type="danger"
             plain
             icon="el-icon-delete"
