@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.water.mapper.WaterAnomalyRecordMapper">
+
+    <resultMap type="com.ruoyi.water.domain.WaterAnomalyRecord" id="WaterAnomalyRecordResult">
+        <id property="anomalyId" column="anomaly_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="statPeriod" column="stat_period"/>
+        <result property="ruleCode" column="rule_code"/>
+        <result property="ruleName" column="rule_name"/>
+        <result property="anomalyDescription" column="anomaly_description"/>
+        <result property="featureField" column="feature_field"/>
+        <result property="actualValue" column="actual_value"/>
+        <result property="thresholdValue" column="threshold_value"/>
+        <result property="severity" column="severity"/>
+        <result property="status" column="status"/>
+        <result property="handleBy" column="handle_by"/>
+        <result property="handleRemark" column="handle_remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectWaterAnomalyRecordVo">
+        SELECT a.anomaly_id, a.user_id, a.stat_period, a.rule_code, a.rule_name,
+               a.anomaly_description, a.feature_field, a.actual_value, a.threshold_value,
+               a.severity, a.status, a.handle_by, a.handle_remark,
+               a.create_by, a.create_time, a.update_by, a.update_time, a.remark,
+               u.nick_name as user_name
+        FROM water_anomaly_record a
+        LEFT JOIN sys_user u ON a.user_id = u.user_id
+    </sql>
+
+    <!-- 查询异常记录列表 -->
+    <select id="selectWaterAnomalyRecordList" parameterType="com.ruoyi.water.domain.WaterAnomalyRecord" resultMap="WaterAnomalyRecordResult">
+        <include refid="selectWaterAnomalyRecordVo"/>
+        <where>
+            <if test="userId != null">
+                AND a.user_id = #{userId}
+            </if>
+            <if test="statPeriod != null and statPeriod != ''">
+                AND a.stat_period = #{statPeriod}
+            </if>
+            <if test="ruleCode != null and ruleCode != ''">
+                AND a.rule_code = #{ruleCode}
+            </if>
+            <if test="severity != null">
+                AND a.severity = #{severity}
+            </if>
+            <if test="status != null">
+                AND a.status = #{status}
+            </if>
+        </where>
+        ORDER BY a.severity DESC, a.create_time DESC
+    </select>
+
+    <!-- 根据ID查询异常记录 -->
+    <select id="selectWaterAnomalyRecordById" parameterType="Long" resultMap="WaterAnomalyRecordResult">
+        <include refid="selectWaterAnomalyRecordVo"/>
+        WHERE a.anomaly_id = #{anomalyId}
+    </select>
+
+    <!-- 根据用户ID和统计周期查询异常记录 -->
+    <select id="selectByUserAndPeriod" resultMap="WaterAnomalyRecordResult">
+        <include refid="selectWaterAnomalyRecordVo"/>
+        WHERE a.user_id = #{userId} AND a.stat_period = #{statPeriod}
+        ORDER BY a.severity DESC
+    </select>
+
+    <!-- 新增异常记录 -->
+    <insert id="insertWaterAnomalyRecord" parameterType="com.ruoyi.water.domain.WaterAnomalyRecord" useGeneratedKeys="true" keyProperty="anomalyId">
+        INSERT INTO water_anomaly_record (
+            user_id, stat_period, rule_code, rule_name, anomaly_description,
+            feature_field, actual_value, threshold_value, severity, status,
+            create_by, create_time, remark
+        ) VALUES (
+            #{userId}, #{statPeriod}, #{ruleCode}, #{ruleName}, #{anomalyDescription},
+            #{featureField}, #{actualValue}, #{thresholdValue}, #{severity}, #{status},
+            #{createBy}, NOW(), #{remark}
+        )
+    </insert>
+
+    <!-- 批量新增异常记录 -->
+    <insert id="batchInsertWaterAnomalyRecord">
+        INSERT INTO water_anomaly_record (
+            user_id, stat_period, rule_code, rule_name, anomaly_description,
+            feature_field, actual_value, threshold_value, severity, status,
+            create_by, create_time
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.userId}, #{item.statPeriod}, #{item.ruleCode}, #{item.ruleName},
+                #{item.anomalyDescription}, #{item.featureField}, #{item.actualValue},
+                #{item.thresholdValue}, #{item.severity}, #{item.status},
+                #{item.createBy}, NOW()
+            )
+        </foreach>
+    </insert>
+
+    <!-- 修改异常记录 -->
+    <update id="updateWaterAnomalyRecord" parameterType="com.ruoyi.water.domain.WaterAnomalyRecord">
+        UPDATE water_anomaly_record
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="handleBy != null">handle_by = #{handleBy},</if>
+            <if test="handleRemark != null">handle_remark = #{handleRemark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = NOW()
+        </set>
+        WHERE anomaly_id = #{anomalyId}
+    </update>
+
+    <!-- 删除异常记录 -->
+    <delete id="deleteWaterAnomalyRecordById" parameterType="Long">
+        DELETE FROM water_anomaly_record WHERE anomaly_id = #{anomalyId}
+    </delete>
+
+    <!-- 批量删除异常记录 -->
+    <delete id="deleteWaterAnomalyRecordByIds" parameterType="Long">
+        DELETE FROM water_anomaly_record WHERE anomaly_id IN
+        <foreach collection="array" item="anomalyId" open="(" separator="," close=")">
+            #{anomalyId}
+        </foreach>
+    </delete>
+
+    <!-- 根据统计周期删除异常记录 -->
+    <delete id="deleteByStatPeriod">
+        DELETE FROM water_anomaly_record WHERE stat_period = #{statPeriod}
+    </delete>
+
+    <!-- 根据统计周期删除待处理的异常记录（保留已处理和已忽略的记录） -->
+    <delete id="deletePendingByStatPeriod">
+        DELETE FROM water_anomaly_record WHERE stat_period = #{statPeriod} AND status = 0
+    </delete>
+
+    <!-- 检查异常记录是否已存在（根据用户、周期、规则编码） -->
+    <select id="checkAnomalyExists" resultType="int">
+        SELECT COUNT(1) FROM water_anomaly_record
+        WHERE user_id = #{userId} AND stat_period = #{statPeriod} AND rule_code = #{ruleCode}
+    </select>
+
+    <!-- 更新处理状态 -->
+    <update id="updateStatus">
+        UPDATE water_anomaly_record
+        SET status = #{status},
+            handle_by = #{handleBy},
+            handle_remark = #{handleRemark},
+            update_time = NOW()
+        WHERE anomaly_id = #{anomalyId}
+    </update>
+
+    <!-- 统计各状态异常数量 -->
+    <select id="countByStatus" resultMap="WaterAnomalyRecordResult">
+        SELECT status, COUNT(*) as severity
+        FROM water_anomaly_record
+        WHERE stat_period = #{statPeriod}
+        GROUP BY status
+    </select>
+
+</mapper>
+
