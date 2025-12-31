@@ -91,7 +91,7 @@
         highlight-current-row
         @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="ID" prop="recordId" width="80" align="center"></el-table-column>
+        <el-table-column label="用户ID" prop="userId" width="80" align="center"></el-table-column>
         <el-table-column label="用户名" prop="userName" width="120" align="center" show-overflow-tooltip></el-table-column>
         <el-table-column label="用水日期" prop="usageDate" width="120" align="center"></el-table-column>
         <el-table-column label="用水量(m³)" prop="usageAmount" width="120" align="center">
