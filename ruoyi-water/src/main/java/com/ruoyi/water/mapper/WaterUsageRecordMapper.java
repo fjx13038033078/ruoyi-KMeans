@@ -104,5 +104,29 @@ public interface WaterUsageRecordMapper {
      * @return 时段分布统计
      */
     List<Map<String, Object>> selectTimePeriodStatistics(@Param("userId") Long userId);
+
+    /**
+     * 查询全局用水概览统计
+     *
+     * @return 概览统计（总用户数、总记录数、总用水量）
+     */
+    Map<String, Object> selectGlobalOverview();
+
+    /**
+     * 查询用户个人用水概览统计
+     *
+     * @param userId 用户ID
+     * @return 概览统计（记录数、总用水量、平均用水量）
+     */
+    Map<String, Object> selectUserOverview(@Param("userId") Long userId);
+
+    /**
+     * 查询近N天用水趋势
+     *
+     * @param userId 用户ID（可选，为空则查全局）
+     * @param days   天数
+     * @return 每日用水量趋势
+     */
+    List<Map<String, Object>> selectDailyTrend(@Param("userId") Long userId, @Param("days") int days);
 }
 

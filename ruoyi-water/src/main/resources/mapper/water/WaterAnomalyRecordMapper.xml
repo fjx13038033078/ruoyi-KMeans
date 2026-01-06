@@ -17,6 +17,10 @@
         <result property="thresholdValue" column="threshold_value"/>
         <result property="severity" column="severity"/>
         <result property="status" column="status"/>
+        <result property="isRead" column="is_read"/>
+        <result property="userFeedback" column="user_feedback"/>
+        <result property="feedbackTime" column="feedback_time"/>
+        <result property="feedbackRemark" column="feedback_remark"/>
         <result property="handleBy" column="handle_by"/>
         <result property="handleRemark" column="handle_remark"/>
         <result property="createBy" column="create_by"/>
@@ -29,7 +33,8 @@
     <sql id="selectWaterAnomalyRecordVo">
         SELECT a.anomaly_id, a.user_id, a.stat_period, a.rule_code, a.rule_name,
                a.anomaly_description, a.feature_field, a.actual_value, a.threshold_value,
-               a.severity, a.status, a.handle_by, a.handle_remark,
+               a.severity, a.status, a.is_read, a.user_feedback, a.feedback_time, a.feedback_remark,
+               a.handle_by, a.handle_remark,
                a.create_by, a.create_time, a.update_by, a.update_time, a.remark,
                u.nick_name as user_name
         FROM water_anomaly_record a
@@ -54,6 +59,12 @@
             </if>
             <if test="status != null">
                 AND a.status = #{status}
+            </if>
+            <if test="isRead != null">
+                AND a.is_read = #{isRead}
+            </if>
+            <if test="userFeedback != null">
+                AND a.user_feedback = #{userFeedback}
             </if>
         </where>
         ORDER BY a.severity DESC, a.create_time DESC
@@ -107,6 +118,10 @@
         UPDATE water_anomaly_record
         <set>
             <if test="status != null">status = #{status},</if>
+            <if test="isRead != null">is_read = #{isRead},</if>
+            <if test="userFeedback != null">user_feedback = #{userFeedback},</if>
+            <if test="feedbackTime != null">feedback_time = #{feedbackTime},</if>
+            <if test="feedbackRemark != null">feedback_remark = #{feedbackRemark},</if>
             <if test="handleBy != null">handle_by = #{handleBy},</if>
             <if test="handleRemark != null">handle_remark = #{handleRemark},</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
@@ -161,6 +176,73 @@
         FROM water_anomaly_record
         WHERE stat_period = #{statPeriod}
         GROUP BY status
+    </select>
+
+    <!-- 查询用户的告警列表（普通用户查看自己的告警） -->
+    <select id="selectMyAlertList" parameterType="com.ruoyi.water.domain.WaterAnomalyRecord" resultMap="WaterAnomalyRecordResult">
+        <include refid="selectWaterAnomalyRecordVo"/>
+        WHERE a.user_id = #{userId}
+        <if test="isRead != null">
+            AND a.is_read = #{isRead}
+        </if>
+        <if test="userFeedback != null">
+            AND a.user_feedback = #{userFeedback}
+        </if>
+        <if test="statPeriod != null and statPeriod != ''">
+            AND a.stat_period = #{statPeriod}
+        </if>
+        ORDER BY a.is_read ASC, a.create_time DESC
+    </select>
+
+    <!-- 统计用户未读告警数量 -->
+    <select id="countUnreadByUserId" parameterType="Long" resultType="int">
+        SELECT COUNT(*) FROM water_anomaly_record
+        WHERE user_id = #{userId} AND is_read = 0
+    </select>
+
+    <!-- 标记告警为已读 -->
+    <update id="markAsRead">
+        UPDATE water_anomaly_record
+        SET is_read = 1, update_time = NOW()
+        WHERE anomaly_id = #{anomalyId} AND user_id = #{userId}
+    </update>
+
+    <!-- 批量标记告警为已读 -->
+    <update id="batchMarkAsRead">
+        UPDATE water_anomaly_record
+        SET is_read = 1, update_time = NOW()
+        WHERE user_id = #{userId} AND is_read = 0
+    </update>
+
+    <!-- 用户提交反馈 -->
+    <update id="submitFeedback">
+        UPDATE water_anomaly_record
+        SET user_feedback = #{userFeedback},
+            feedback_time = NOW(),
+            feedback_remark = #{feedbackRemark},
+            is_read = 1,
+            update_time = NOW()
+        WHERE anomaly_id = #{anomalyId} AND user_id = #{userId}
+    </update>
+
+    <!-- 查询全局异常统计 -->
+    <select id="selectGlobalAnomalyStats" resultType="map">
+        SELECT
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as handled,
+            SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as ignored
+        FROM water_anomaly_record
+    </select>
+
+    <!-- 查询用户告警统计 -->
+    <select id="selectUserAlertStats" resultType="map">
+        SELECT
+            COUNT(*) as total,
+            SUM(CASE WHEN is_read = 0 THEN 1 ELSE 0 END) as unread,
+            SUM(CASE WHEN user_feedback = 0 THEN 1 ELSE 0 END) as pending_feedback
+        FROM water_anomaly_record
+        WHERE user_id = #{userId}
     </select>
 
 </mapper>

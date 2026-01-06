@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 用水异常记录 Mapper 接口
@@ -125,5 +126,65 @@ public interface WaterAnomalyRecordMapper {
      * @return 统计结果
      */
     List<WaterAnomalyRecord> countByStatus(@Param("statPeriod") String statPeriod);
+
+    /**
+     * 查询用户的告警列表
+     *
+     * @param waterAnomalyRecord 查询条件（需包含userId）
+     * @return 告警列表
+     */
+    List<WaterAnomalyRecord> selectMyAlertList(WaterAnomalyRecord waterAnomalyRecord);
+
+    /**
+     * 统计用户未读告警数量
+     *
+     * @param userId 用户ID
+     * @return 未读数量
+     */
+    int countUnreadByUserId(@Param("userId") Long userId);
+
+    /**
+     * 标记告警为已读
+     *
+     * @param anomalyId 告警ID
+     * @param userId    用户ID
+     * @return 影响行数
+     */
+    int markAsRead(@Param("anomalyId") Long anomalyId, @Param("userId") Long userId);
+
+    /**
+     * 批量标记告警为已读
+     *
+     * @param userId 用户ID
+     * @return 影响行数
+     */
+    int batchMarkAsRead(@Param("userId") Long userId);
+
+    /**
+     * 用户提交反馈
+     *
+     * @param anomalyId      告警ID
+     * @param userId         用户ID
+     * @param userFeedback   用户反馈（1-确认属实，2-认为误报）
+     * @param feedbackRemark 反馈说明
+     * @return 影响行数
+     */
+    int submitFeedback(@Param("anomalyId") Long anomalyId, @Param("userId") Long userId,
+                       @Param("userFeedback") Integer userFeedback, @Param("feedbackRemark") String feedbackRemark);
+
+    /**
+     * 查询全局异常统计
+     *
+     * @return 统计数据（总数、待处理、已处理、已忽略）
+     */
+    Map<String, Object> selectGlobalAnomalyStats();
+
+    /**
+     * 查询用户告警统计
+     *
+     * @param userId 用户ID
+     * @return 统计数据（总数、未读数、待反馈数）
+     */
+    Map<String, Object> selectUserAlertStats(@Param("userId") Long userId);
 }
 

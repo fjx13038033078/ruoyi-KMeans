@@ -39,6 +39,13 @@
             <el-option label="已忽略" :value="2" />
           </el-select>
         </el-form-item>
+        <el-form-item label="用户反馈" prop="userFeedback">
+          <el-select v-model="queryParams.userFeedback" placeholder="选择反馈" clearable size="small" style="width: 120px">
+            <el-option label="未反馈" :value="0" />
+            <el-option label="确认属实" :value="1" />
+            <el-option label="认为误报" :value="2" />
+          </el-select>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
           <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -164,6 +171,18 @@
           </el-tag>
         </template>
       </el-table-column>
+      <el-table-column label="用户反馈" prop="userFeedback" width="110" align="center">
+        <template slot-scope="scope">
+          <el-tag v-if="scope.row.userFeedback === 0" type="info" size="small">未反馈</el-tag>
+          <el-tag v-else-if="scope.row.userFeedback === 1" type="warning" size="small">
+            <i class="el-icon-check"></i> 确认属实
+          </el-tag>
+          <el-tag v-else-if="scope.row.userFeedback === 2" type="success" size="small">
+            <i class="el-icon-close"></i> 认为误报
+          </el-tag>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
       <el-table-column label="处理人" prop="handleBy" width="100" align="center" />
       <el-table-column label="处理时间" prop="handleTime" width="160" align="center" />
       <el-table-column label="处理意见" prop="handleRemark" width="150" show-overflow-tooltip />
@@ -215,7 +234,7 @@
     <el-dialog
       :visible.sync="processDialogVisible"
       :title="processDialogTitle"
-      width="500px"
+      width="550px"
       :close-on-click-modal="false">
       <el-form :model="processForm" label-width="100px">
         <el-form-item label="异常类型">
@@ -229,6 +248,19 @@
         <el-form-item label="异常值">
           <span class="anomaly-value">{{ formatNumber(processForm.actualValue) }}</span>
           <span style="margin-left: 10px; color: #909399;">（阈值：{{ formatNumber(processForm.thresholdValue) }}）</span>
+        </el-form-item>
+        <el-form-item label="用户反馈">
+          <el-tag v-if="processForm.userFeedback === 0" type="info" size="small">未反馈</el-tag>
+          <el-tag v-else-if="processForm.userFeedback === 1" type="warning" size="small">
+            <i class="el-icon-check"></i> 确认属实
+          </el-tag>
+          <el-tag v-else-if="processForm.userFeedback === 2" type="success" size="small">
+            <i class="el-icon-close"></i> 认为误报
+          </el-tag>
+          <span v-else>-</span>
+        </el-form-item>
+        <el-form-item v-if="processForm.feedbackRemark" label="反馈说明">
+          <span style="color: #606266;">{{ processForm.feedbackRemark }}</span>
         </el-form-item>
         <el-form-item label="处理意见" prop="handleRemark">
           <el-input
@@ -273,8 +305,20 @@
             {{ getStatusName(detailData.status) }}
           </el-tag>
         </el-descriptions-item>
+        <el-descriptions-item label="用户反馈">
+          <el-tag v-if="detailData.userFeedback === 0" type="info" size="small">未反馈</el-tag>
+          <el-tag v-else-if="detailData.userFeedback === 1" type="warning" size="small">确认属实</el-tag>
+          <el-tag v-else-if="detailData.userFeedback === 2" type="success" size="small">认为误报</el-tag>
+          <span v-else>-</span>
+        </el-descriptions-item>
+        <el-descriptions-item v-if="detailData.feedbackRemark" label="反馈说明" :span="2">
+          {{ detailData.feedbackRemark }}
+        </el-descriptions-item>
+        <el-descriptions-item v-if="detailData.feedbackTime" label="反馈时间" :span="2">
+          {{ detailData.feedbackTime }}
+        </el-descriptions-item>
         <el-descriptions-item label="处理人">{{ detailData.handleBy || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="处理时间" :span="2">{{ detailData.handleTime || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="处理时间">{{ detailData.handleTime || '-' }}</el-descriptions-item>
         <el-descriptions-item label="处理意见" :span="2">{{ detailData.handleRemark || '-' }}</el-descriptions-item>
         <el-descriptions-item label="检测时间" :span="2">{{ detailData.createTime }}</el-descriptions-item>
       </el-descriptions>
@@ -373,7 +417,8 @@ export default {
         userId: undefined,
         statPeriod: undefined,
         ruleCode: undefined,
-        status: undefined
+        status: undefined,
+        userFeedback: undefined
       },
       // 统计概览
       overviewStats: {
@@ -392,6 +437,8 @@ export default {
         anomalyDescription: '',
         actualValue: 0,
         thresholdValue: 0,
+        userFeedback: 0,
+        feedbackRemark: '',
         handleRemark: '',
         status: 1
       },
@@ -461,7 +508,8 @@ export default {
         userId: undefined,
         statPeriod: undefined,
         ruleCode: undefined,
-        status: undefined
+        status: undefined,
+        userFeedback: undefined
       }
       this.handleQuery()
     },
@@ -479,6 +527,8 @@ export default {
         anomalyDescription: row.anomalyDescription,
         actualValue: row.actualValue,
         thresholdValue: row.thresholdValue,
+        userFeedback: row.userFeedback,
+        feedbackRemark: row.feedbackRemark,
         handleRemark: '',
         status: status
       }

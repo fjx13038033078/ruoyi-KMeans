@@ -90,6 +90,26 @@ public class WaterAnomalyRecord extends BaseEntity {
     private Integer status;
 
     /**
+     * 用户是否已读：0-未读,1-已读
+     */
+    private Integer isRead;
+
+    /**
+     * 用户反馈：0-未反馈,1-确认属实,2-认为误报
+     */
+    private Integer userFeedback;
+
+    /**
+     * 用户反馈时间
+     */
+    private java.util.Date feedbackTime;
+
+    /**
+     * 用户反馈说明
+     */
+    private String feedbackRemark;
+
+    /**
      * 处理人
      */
     private String handleBy;

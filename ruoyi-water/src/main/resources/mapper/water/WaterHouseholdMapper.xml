@@ -110,5 +110,10 @@
         WHERE household_id = #{householdId}
     </update>
 
+    <!-- 统计住户数量 -->
+    <select id="selectHouseholdCount" resultType="int">
+        SELECT COUNT(*) FROM water_household
+    </select>
+
 </mapper>
 

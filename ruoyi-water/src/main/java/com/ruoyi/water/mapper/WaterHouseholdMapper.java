@@ -79,5 +79,12 @@ public interface WaterHouseholdMapper {
      * @return 影响行数
      */
     int updateStatus(@Param("householdId") Long householdId, @Param("status") Integer status);
+
+    /**
+     * 统计住户数量
+     *
+     * @return 住户数量
+     */
+    int selectHouseholdCount();
 }
 

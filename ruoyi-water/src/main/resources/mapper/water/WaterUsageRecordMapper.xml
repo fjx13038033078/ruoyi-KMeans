@@ -186,5 +186,43 @@
         ORDER BY time_period ASC
     </select>
 
+    <!-- 查询全局用水概览统计 -->
+    <select id="selectGlobalOverview" resultType="map">
+        SELECT
+            COUNT(DISTINCT user_id) as user_count,
+            COUNT(*) as record_count,
+            COALESCE(SUM(usage_amount), 0) as total_usage,
+            COALESCE(AVG(usage_amount), 0) as avg_usage
+        FROM water_usage_record
+        WHERE del_flag = 0
+    </select>
+
+    <!-- 查询用户个人用水概览统计 -->
+    <select id="selectUserOverview" resultType="map">
+        SELECT
+            COUNT(*) as record_count,
+            COALESCE(SUM(usage_amount), 0) as total_usage,
+            COALESCE(AVG(usage_amount), 0) as avg_usage,
+            MAX(usage_date) as last_usage_date
+        FROM water_usage_record
+        WHERE del_flag = 0 AND user_id = #{userId}
+    </select>
+
+    <!-- 查询近N天用水趋势 -->
+    <select id="selectDailyTrend" resultType="map">
+        SELECT
+            DATE_FORMAT(usage_date, '%m-%d') as date,
+            COALESCE(SUM(usage_amount), 0) as total_amount,
+            COUNT(*) as record_count
+        FROM water_usage_record
+        WHERE del_flag = 0
+          AND usage_date >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)
+        <if test="userId != null">
+            AND user_id = #{userId}
+        </if>
+        GROUP BY usage_date
+        ORDER BY usage_date ASC
+    </select>
+
 </mapper>
 
